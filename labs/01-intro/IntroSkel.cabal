@@ -1,0 +1,27 @@
+name:           IntroSkel
+version:        0.1
+cabal-version:  >=1.8
+build-type:     Simple
+author:         Mihnea
+
+library
+  hs-source-dirs:   src
+  build-depends:    base >= 4
+  ghc-options:      -Wall
+  exposed-modules:  
+                    Basics,
+                    Pics
+
+test-suite IntroTest
+  type:            exitcode-stdio-1.0
+  main-is:         IntroTest.hs
+  ghc-options:     -Wall -rtsopts
+  build-depends:   
+                  base >= 4,
+                  HTF > 0.9,
+                  IntroSkel
+  hs-source-dirs:  tests
+  other-modules:   
+                   BasicsTest,
+                   PicsTest
+
