@@ -1,6 +1,7 @@
 module Pics where  -- (2p)
 
 import Data.List (intercalate)
+import Data.Char (chr, ord)
 
 {-  
     The 'Pic' type designates images.
@@ -8,8 +9,8 @@ import Data.List (intercalate)
     POINT-FREE STYLE.
     If this is unfamiliar to you, please request assistance :).
     
-    Adapted from 'S. Thompson (2011). «Haskell: The Craft of Functional
-    Programming» (3rd edition). Addison Wesley'.
+    Adapted from 'S. Thompson (2011). ï¿½Haskell: The Craft of Functional
+    Programmingï¿½ (3rd edition). Addison Wesley'.
 -}
 
 type Pic = [String] 
@@ -35,7 +36,7 @@ printPic = putStrLn . intercalate "\n"
 -}
 
 flipH :: Pic -> Pic
-flipH = undefined
+flipH = foldl (\acc x -> x : acc) []
 
 {-
     2. (0.3p)
@@ -43,7 +44,7 @@ flipH = undefined
 -}
 
 flipV :: Pic -> Pic
-flipV = undefined
+flipV = map reverse
 
 {-
     3. (0.3p)
@@ -51,7 +52,7 @@ flipV = undefined
 -}
 
 rotate :: Pic -> Pic
-rotate = undefined
+rotate = flipH . flipV
 
 {-
     4. (0.3p)
@@ -59,7 +60,7 @@ rotate = undefined
 -}
 
 above :: Pic -> Pic -> Pic
-above = undefined
+above = (++)
 
 {-
     5. (0.3p)
@@ -67,7 +68,7 @@ above = undefined
 -}
 
 beside :: Pic -> Pic -> Pic
-beside = undefined
+beside = zipWith (++)
 
 {-
     6. (0.5p)
@@ -75,4 +76,5 @@ beside = undefined
 -}
 
 invert :: Pic -> Pic
-invert = undefined
+invert = map  $ map  $ chr . (pixelSum - ) . ord where
+    pixelSum = ord '.' + ord '#'

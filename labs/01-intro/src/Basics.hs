@@ -20,7 +20,7 @@ reverseRec1 (x : xs) = reverseRec1 xs ++ [x]
 
 reverseRecHelper :: [a] -> [a] -> [a]
 reverseRecHelper acc [] = acc
-reverseRecHelper acc (x : xs) = reverseRecHelper xs (acc ++ [x])
+reverseRecHelper acc (x : xs) = reverseRecHelper (x : acc) xs
 
 reverseRec2 :: [a] -> [a]
 reverseRec2 = reverseRecHelper []
@@ -33,7 +33,7 @@ reverseRec2 = reverseRecHelper []
 -}
 
 reverseHO1 :: [a] -> [a]
-reverseHO1 = foldl (\acc x -> x : acc) []
+reverseHO1 = foldr (\x acc -> acc ++ [x]) []
 
 {-
     4. (1.5p)
@@ -43,7 +43,7 @@ reverseHO1 = foldl (\acc x -> x : acc) []
 -}
 
 reverseHO2 :: [a] -> [a]
-reverseHO2 = foldr (\x acc -> x : acc) []
+reverseHO2 = foldl (flip (:)) []
 
 {-
     5. (1p)
@@ -52,7 +52,7 @@ reverseHO2 = foldr (\x acc -> x : acc) []
 -}
 
 powerSetRec :: [a] -> [[a]]
-powerSetRec [] = []
+powerSetRec [] = [[]]
 powerSetRec (x : xs) = subset ++ map (x :) subset where
     subset = powerSetRec xs
 
