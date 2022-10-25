@@ -26,11 +26,7 @@ data NestedList a
 instance Show a => Show (NestedList a) where
     show Empty = "[]"
     show (Value x) = show x
-    show (List xs) = "[" ++ showList xs ++ "]"
-        where
-            showList [] = ""
-            showList [x] = show x
-            showList (x:xs) = show x ++ ", " ++ showList xs
+    show (List xs) = show xs
 
 instance Container NestedList where
     contents Empty = []
@@ -40,7 +36,7 @@ instance Container NestedList where
 instance Invertible a => Invertible (NestedList a) where
     invert Empty = Empty
     invert (Value x) = Value (invert x)
-    invert (List xs) = List (map invert $ invert xs)
+    invert (List xs) = List (invert xs)
 
 instance Functor NestedList where
     fmap _ Empty = Empty
