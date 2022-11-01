@@ -60,6 +60,16 @@ letter = spot isLetter
     Exposes (<*>) :: Parser (a -> b) -> Parser a -> Parser b
 -}
 instance Applicative Parser where
+    {-
+        For the Parser to be a Functor, we need to be able to apply `fmap` with
+        the functions defined here. We can't do this with `<*>` alone because
+        it only takes "boxed" arguments. We need something with which to wrap
+        it: `pure`. `pure` just boxes the argument within the Parser.
+
+        `success` is the simplest parser: it doesn't consume any input.
+
+        pure :: a -> Parser a
+    -}
     pure = success
 
     {-
@@ -70,10 +80,19 @@ instance Applicative Parser where
         parser. The > and < operators are used to point to the parser whose
         contents we keep.
     -}
-
     P p <*> P p' = P $ \s -> case p s of
         Nothing -> Nothing
         Just (f, s') -> fmap (\(a, s'') -> (f a, s'')) $ p' s'
+
+    {-
+        We now get `some` and `many` for free.
+
+        some :: Parser a -> Parser [a]
+        many :: Parser a -> Parser [a]
+
+        some p = liftA2 (:) p (many p)  <=> (:) <$> p <*> many p
+        many p = some p <|> pure []
+    -}
 
 {-
     fmap :: Functor f => (a -> b) -> f a -> f b
@@ -90,6 +109,7 @@ instance Applicative Parser where
 letterDigit :: Parser (Char, Int)
 letterDigit = liftA2 (,) letter digit
 
+-- Recognises parentheses
 parOperation :: Parser (Int, Char, Int)
 -- parOperation = liftA3 (,,) digit token digit
 parOperation = (,,) <$>
@@ -117,3 +137,39 @@ insensitiveA = token 'a' <|> token 'A'
 
 insensitiveAs :: Parser String
 insensitiveAs = some insensitiveA
+
+{-
+    () is the "unit type". It's like a `void` type in C. Its only value is `()`.
+    It's used to represent the absence of a value.
+-}
+eof :: Parser ()
+eof = P $ \s -> case s of
+    [] -> Just ((), "")
+    _ -> Nothing
+
+-- Applies a function to the first element of a pair
+applyToFirst :: (a -> b) -> (a, c) -> (b, c)
+applyToFirst f (a, c) = (f a, c)
+
+{-
+    Applies a function only to the first token, while disregarding the rest.
+    `runParser` also returns the rest of the string.
+
+    `parse` returns the first element of the tuple returned by `runParser`.
+-}
+parse :: Parser a -> String -> Maybe a
+parse p s = fst <$> runParser p s
+
+data Expr
+    = Literal Int
+    | Add Expr Expr
+    deriving (Read, Show)
+
+literal :: Parser Expr
+literal = Literal <$> digit  -- fmap `Literal` onto `digit`
+
+add :: Parser Expr
+add = liftA2 Add (token '(' *> expr <* token '+') (expr <* token ')')
+
+expr :: Parser Expr
+expr = add <|> literal
