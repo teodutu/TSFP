@@ -1,0 +1,38 @@
+true=\x.\y.x
+false=\x.\y.y 
+
+not=\x.((x false) true)
+(not true) 
+(not false)
+
+and=\x.\y.((x y) false)
+((and true) true)
+((and true) false)
+((and false) true)
+((and false) false)
+
+or=\x.\y.((x true) y)
+((or true) true)
+((or true) false)
+((or false) true)
+((or false) false)
+
+nil=\x.true
+null=\l.(l \x.\y.false)
+cons=\x.\y.\z.((z x) y)
+car=\l.(l true)
+cdr=\l.(l false)
+if=\p.\then.\else.((p then) else)
+
+fix=\f.(\x.(f (x x)) \x.(f (x x)))
+(fix fun)
+
+append=\a.\b.((fix \r.\a.(((if (null a)) b) ((cons (car a)) (r (cdr a))))) a)
+la=((cons x) nil)
+lb=((cons y) ((cons z) nil))
+lc=((append la) lb) 
+(car lc)
+(car (cdr lc))
+(car (cdr (cdr lc)))
+
+
