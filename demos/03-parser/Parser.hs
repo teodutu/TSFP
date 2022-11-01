@@ -165,6 +165,9 @@ data Expr
     | Add Expr Expr
     deriving (Read, Show)
 
+{-
+    This is like a small DSL defined in Haskell.
+-}
 literal :: Parser Expr
 literal = Literal <$> digit  -- fmap `Literal` onto `digit`
 
@@ -173,3 +176,13 @@ add = liftA2 Add (token '(' *> expr <* token '+') (expr <* token ')')
 
 expr :: Parser Expr
 expr = add <|> literal
+
+{-
+    We must pay attention to not accept definitions outside the global scope,
+    i.e.:
+        - this is fine: id=\x.(x x)
+        - this is not: (\x.x \y.y)
+-}
+data LambdaExpr
+    = Var String
+    | Lambda String LambdaExpr
