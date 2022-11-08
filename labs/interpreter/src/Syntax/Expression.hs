@@ -5,4 +5,10 @@ data Expression
     | Lambda String Expression
     | Application Expression Expression
     | Definition String Expression
-    deriving (Read, Show)
+    deriving (Read, Eq)
+
+instance Show Expression where
+    show (Var x) = x
+    show (Lambda x e) = "\\" ++ x ++ "." ++ show e
+    show (Application e1 e2) = "(" ++ show e1 ++ " " ++ show e2 ++ ")"
+    show (Definition x e) = x ++ " = " ++ show e
