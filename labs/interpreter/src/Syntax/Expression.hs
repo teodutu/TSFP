@@ -1,5 +1,7 @@
 module Syntax.Expression where
 
+import Data.Map
+
 data Expression
     = Var String
     | Lambda String Expression
@@ -12,3 +14,5 @@ instance Show Expression where
     show (Lambda x e) = "\\" ++ x ++ "." ++ show e
     show (Application e1 e2) = "(" ++ show e1 ++ " " ++ show e2 ++ ")"
     show (Definition x e) = x ++ " = " ++ show e
+
+type Context = Map String Expression
