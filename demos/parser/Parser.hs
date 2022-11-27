@@ -186,3 +186,96 @@ expr = add <|> literal
 data LambdaExpr
     = Var String
     | Lambda String LambdaExpr
+
+
+{-
+    Monads need a few things to be defined:
+        - return :: a -> m a
+        - (>>=) :: m a -> (a -> m b) -> m b
+
+    `return` is the same as `pure` in Applicative
+    (>>=) is also called "bind" in Monad
+-}
+
+instance Monad Parser where
+    return = pure
+
+    -- Parser a -> (a -> Parser b) -> Parser b
+    -- This is "P bound to f"
+    P p >>= f = P $ \s -> case p s of
+        Nothing -> Nothing
+        Just (a, s') -> runParser (f a) s'
+
+{-
+    "1 1 + 2"
+    "2 1 * 2"
+    "1 1 1 + 2"
+-}
+-- seq1 = digit >>= \n if n == 1 then liftA3 (,,) digit (token '+') digit
+--                               else liftA3 (,,) digit (token '*') digit
+seq1 = digit >>= \n liftA3 (,,) digit (token (if n == 1 then '+' else '*')) digit
+
+{-
+    do
+        x <- p1  -- extracts the result of p1
+        p2
+    is the same as:
+    p1 >>= \x -> p2
+
+    do
+        x <- p1
+        y <- p2
+        p3
+    is the same as:
+    p1 >>= \x -> p2 >>= \y -> p3
+    p1 >>= \x -> (p2 >>= \y -> p3)  -- `x` is visible in `p3`
+
+    do
+        x <- p1
+        p2
+        y <- p3
+    is the same as:
+    p1 >>= \x -> p2 >> p3 >>= \y -> return ()
+    (>>) = (*>)
+
+    op1 >> op2 = op1 >>= const op2
+-}
+seq2 = do  -- syntactic sugar for `>>=`
+    n <- digit  -- extracts the value from the Parser
+    -- monadic `let`. It is visible for the rest of the `do` block.
+    -- This is just an alias
+    let x = digit
+    if n == 1 then liftA3 (,,) digit (token '+') digit
+              else do
+                a <- digit
+                token '*'
+                b <- digit
+                return (a, '*', b)
+
+{-
+    Every Applicative is a Functor
+        we can implement fmap with `pure` and `<*>`
+    Every Monad is an Applicative
+        pure = return
+        pf <*> px = do
+            f <- pf
+            x <- px
+            return $ f x
+-}
+
+{-
+    f :: a -> b
+    g :: b -> c
+    g . f :: a -> c
+
+    f :: a -> Parser b
+    g :: b -> Parser c
+    g "." f :: a -> Parser c
+    We want the compisition to mix the results of the two parsers.
+    We'll use the "fish operator": (<=<) that is used to compose monads.
+
+    g <=< f = \a -> do
+        b <- f a
+        g b
+    g <=< f = \a -> f a >>= g
+-}
