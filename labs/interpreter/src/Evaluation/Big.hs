@@ -33,7 +33,7 @@ evalBig eval exp ctx
 evalList :: (Expression -> Context -> (Expression, Context))
          -> [Expression]
          -> Context
-         -> ([Expression], Cogitntext)
+         -> ([Expression], Context)
 evalList eval exps ctx = swap $ mapAccumL evalSwap ctx exps
     where
         evalSwap ctx exp = swap $ evalBig eval exp ctx
