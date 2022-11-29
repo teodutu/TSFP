@@ -101,6 +101,8 @@ fibo 0 = 0
 fibo 1 = 1
 fibo n = fibo (n - 1) + fibo (n - 2)
 
+-- This is what build when fix is applied
+bigFibo :: (Int -> Int) -> (Int -> Int)
 bigFibo _ 0 = 0
 bigFibo _ 1 = 1
 bigFibo f n = f (n - 1) + f (n - 2)

@@ -200,8 +200,14 @@ data LambdaExpr
 instance Monad Parser where
     return = pure
 
-    -- Parser a -> (a -> Parser b) -> Parser b
-    -- This is "P bound to f"
+    {-
+        Parser a -> (a -> Parser b) -> Parser b
+            This is "P bound to f"
+        fmap f p :: Parser (Parser b)
+        join :: Monad m => m (m a) -> m a
+            >>= == join . fmap, so we can either define return and (>>=) or
+            return and join. Both are complete definitions of monads.
+    -}
     P p >>= f = P $ \s -> case p s of
         Nothing -> Nothing
         Just (a, s') -> runParser (f a) s'
