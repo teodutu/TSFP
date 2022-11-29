@@ -18,24 +18,15 @@ eval :: Expression             -- ^ Expression to be evaluated
 eval exp ctx = runState (evalM exp) ctx
 
 evalM :: Expression -> Eval Expression
-evalM (Var x) = do
-    ctx <- get
-    return $ M.findWithDefault (Var x) x ctx
+evalM (Var x) = gets $ M.findWithDefault (Var x) x
 
 evalM (Definition f fVal) = do
     ctx <- get
     put $ M.insert f fVal ctx
     return fVal
 
-evalM (Lambda x body) = do
-    ctx <- get
-    return $ Lambda x body
+evalM (Lambda x body) = return $ Lambda x body
 
-evalM (Application (Lambda x body) arg) = do
-    ctx <- get
-    return $ subst x arg body
+evalM (Application (Lambda x body) arg) = return $ subst x arg body    
 
-evalM (Application f arg) = do
-    ctx <- get
-    evalF <- evalM f
-    return $ Application evalF arg
+evalM (Application f arg) = liftM2 Application (evalM f) (return arg)
