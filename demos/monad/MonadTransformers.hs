@@ -187,3 +187,9 @@ excIoSeq = do
     return $ line1 ++ line2
 
 -- We can define data types with detailed information about the error.
+
+{-
+    We only need to define the transformer and the plain monad comes for free
+    using the identity monad.
+-}
+type State s a = StateT s Identity a
