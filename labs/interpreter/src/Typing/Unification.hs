@@ -63,14 +63,10 @@ unify t1 t2 = do
                 then return ()
                 else put $ M.insert name1 t2' subst
         (TypeVar name, t) -> do
-            subst <- get
-            if M.member name subst
-                then throwError $ "Type variable " ++ name ++ " is already bound"
-                else do
-                    occ <- occCheck name t
-                    if occ
-                        then put $ M.insert name t subst
-                        else throwError $ "Type variable " ++ name ++ " occurs in " ++ show t
+            occ <- occCheck name t
+            if occ
+                then modify $ M.insert name t
+                else throwError $ "Type variable " ++ name ++ " occurs in " ++ show t
         (t, TypeVar name) -> unify t2 t1
         (Arrow t1 t2, Arrow t3 t4) -> do
             unify t1 t3
