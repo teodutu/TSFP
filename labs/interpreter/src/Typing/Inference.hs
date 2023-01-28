@@ -29,6 +29,7 @@ data TypingState = TypingState
     * A means for storing unification constraints (Writer)
 -}
 type Infer = ReaderT TypingContext (WriterT [(Type, Type)] (State TypingState))
+type InferT = StateT Substitution Infer
 
 runInfer :: Infer a        -- ^ Expression to type
          -> TypingContext  -- ^ Local context
@@ -62,14 +63,9 @@ infer :: Expression          -- ^ Expression to type
 infer expr loc glob subst cnt = let
     inferredTypeM = inferM expr
     (typeExpr, unifications) = runInfer inferredTypeM loc glob cnt
-    finalType = foldl unify' (return typeExpr) unifications
+    finalType = mapM_ (uncurry unify) unifications >> applySubst typeExpr
     in
         fmap fst $ runUnif finalType subst
-    where
-        unify' unificationMonadicObject (initType, resultType) = do
-            unify initType resultType
-            _type <- unificationMonadicObject
-            applySubst _type
 
 {-|
     Generates a new type variable using the counter hidden within the state,
@@ -85,23 +81,19 @@ newTypeVar = do
     See 'copy'.
 -}
 copyM :: Type -> Infer Type
-copyM (TypeVar x) = do
-    ctx <- ask
+copyM t = evalStateT (copyM' t) M.empty
+
+copyM' :: Type -> InferT Type
+copyM' (Arrow t1 t2) = Arrow <$> copyM' t1 <*> copyM' t2
+
+copyM' (TypeVar x) = do
+    ctx <- get
     case M.lookup x ctx of
-        Nothing -> newTypeVar
+        Nothing -> do
+            t <- lift newTypeVar
+            modify $ M.insert x t
+            return t
         Just t  -> return t
-
-copyM (Arrow t1@(TypeVar x) t2) = do
-    t1' <- copyM t1
-    t2' <- local (M.insert x t1') $ copyM t2
-    return $ Arrow t1' t2'
-
-copyM (Arrow t1 t2@(TypeVar x)) = do
-    t2' <- copyM t2
-    t1' <- local (M.insert x t2') $ copyM t1
-    return $ Arrow t1' t2'
-
-copyM (Arrow t1 t2) = Arrow <$> copyM t1 <*> copyM t2
 
 {-|
     See 'infer'.
