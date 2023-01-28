@@ -26,3 +26,6 @@ cabal.project.local~
 *.zip
 doc/
 
+# Exam files
+exam/Course/
+exam/Labs/
